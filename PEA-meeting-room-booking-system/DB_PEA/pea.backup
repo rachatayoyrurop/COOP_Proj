@@ -1,0 +1,391 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict aBpakezz1RlyBdUB7hU4BoXepo25QDeZeDFB3uzEmNFEQNoTcBqkXmOFo44F9eQ
+
+-- Dumped from database version 18.4
+-- Dumped by pg_dump version 18.4
+
+-- Started on 2026-09-03 10:24:06
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 861 (class 1247 OID 16398)
+-- Name: booking_status; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.booking_status AS ENUM (
+    'Pending',
+    'Approved',
+    'Rejected',
+    'Canceled'
+);
+
+
+ALTER TYPE public.booking_status OWNER TO postgres;
+
+--
+-- TOC entry 858 (class 1247 OID 16390)
+-- Name: user_role; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.user_role AS ENUM (
+    'User',
+    'Admin',
+    'SuperAdmin'
+);
+
+
+ALTER TYPE public.user_role OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 225 (class 1259 OID 16449)
+-- Name: booking_logs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.booking_logs (
+    log_id bigint NOT NULL,
+    booking_id bigint NOT NULL,
+    changed_by text NOT NULL,
+    action text NOT NULL,
+    old_status text,
+    new_status text,
+    remark text,
+    created_at timestamp with time zone
+);
+
+
+ALTER TABLE public.booking_logs OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1259 OID 16448)
+-- Name: booking_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.booking_logs_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.booking_logs_log_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5052 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: booking_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.booking_logs_log_id_seq OWNED BY public.booking_logs.log_id;
+
+
+--
+-- TOC entry 223 (class 1259 OID 16431)
+-- Name: bookings; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.bookings (
+    booking_id bigint NOT NULL,
+    booking_code character varying(20) NOT NULL,
+    room_id bigint NOT NULL,
+    emp_id text NOT NULL,
+    title text NOT NULL,
+    ref_note text,
+    objective text,
+    start_date timestamp with time zone NOT NULL,
+    end_date timestamp with time zone NOT NULL,
+    snack_price numeric,
+    participant_count bigint,
+    status public.booking_status DEFAULT 'Pending'::public.booking_status,
+    approved_by text,
+    reject_reason text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone
+);
+
+
+ALTER TABLE public.bookings OWNER TO postgres;
+
+--
+-- TOC entry 222 (class 1259 OID 16430)
+-- Name: bookings_booking_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.bookings_booking_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.bookings_booking_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5053 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: bookings_booking_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.bookings_booking_id_seq OWNED BY public.bookings.booking_id;
+
+
+--
+-- TOC entry 221 (class 1259 OID 16418)
+-- Name: rooms; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.rooms (
+    room_id bigint NOT NULL,
+    room_name text NOT NULL,
+    capacity bigint,
+    mic_count bigint,
+    pc_count bigint,
+    screen_count bigint,
+    images jsonb DEFAULT '[]'::jsonb,
+    is_active boolean DEFAULT true,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    building text
+);
+
+
+ALTER TABLE public.rooms OWNER TO postgres;
+
+--
+-- TOC entry 220 (class 1259 OID 16417)
+-- Name: rooms_room_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.rooms_room_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.rooms_room_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5054 (class 0 OID 0)
+-- Dependencies: 220
+-- Name: rooms_room_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.rooms_room_id_seq OWNED BY public.rooms.room_id;
+
+
+--
+-- TOC entry 219 (class 1259 OID 16407)
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    emp_id text NOT NULL,
+    full_name text NOT NULL,
+    role public.user_role DEFAULT 'User'::public.user_role,
+    department text,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    email text
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- TOC entry 4882 (class 2604 OID 24581)
+-- Name: booking_logs log_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.booking_logs ALTER COLUMN log_id SET DEFAULT nextval('public.booking_logs_log_id_seq'::regclass);
+
+
+--
+-- TOC entry 4880 (class 2604 OID 24582)
+-- Name: bookings booking_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings ALTER COLUMN booking_id SET DEFAULT nextval('public.bookings_booking_id_seq'::regclass);
+
+
+--
+-- TOC entry 4877 (class 2604 OID 24583)
+-- Name: rooms room_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.rooms ALTER COLUMN room_id SET DEFAULT nextval('public.rooms_room_id_seq'::regclass);
+
+
+--
+-- TOC entry 5046 (class 0 OID 16449)
+-- Dependencies: 225
+-- Data for Name: booking_logs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.booking_logs (log_id, booking_id, changed_by, action, old_status, new_status, remark, created_at) FROM stdin;
+1	1	EMP001	created		Pending		2026-05-20 09:07:02.472403+07
+2	1	EMP001	approved	Pending	Approved		2026-05-20 09:07:16.058409+07
+3	2	521354	created		Pending		2026-05-21 09:27:29.35106+07
+4	2	22222	rejected	Pending	Rejected	-	2026-05-25 15:07:10.627379+07
+5	3	22222	created		Pending		2026-05-25 15:07:53.617665+07
+6	4	22222	created		Pending		2026-05-25 15:11:24.750392+07
+7	4	22222	rejected	Pending	Rejected	ควย	2026-05-25 15:12:01.33936+07
+8	3	22222	approved	Pending	Approved		2026-05-25 15:12:03.600193+07
+9	5	22222	created		Pending		2026-05-25 15:14:15.545147+07
+10	5	22222	rejected	Pending	Rejected	ไอ้ควยย	2026-05-25 15:14:50.066062+07
+\.
+
+
+--
+-- TOC entry 5044 (class 0 OID 16431)
+-- Dependencies: 223
+-- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookings (booking_id, booking_code, room_id, emp_id, title, ref_note, objective, start_date, end_date, snack_price, participant_count, status, approved_by, reject_reason, created_at, updated_at) FROM stdin;
+1	PEA-2605-52665D	1	EMP001	วางแผนประจำเดือน	1111	วางแผนงบประมาณประจำเดือน	2026-05-21 09:06:00+07	2026-05-21 12:38:00+07	0	10	Approved	EMP001	\N	2026-05-20 09:07:02.470577+07	2026-05-20 09:07:16.053663+07
+2	PEA-2605-D415C4	1	521354	kkk	2222	lll	2026-05-22 09:26:00+07	2026-05-22 21:26:00+07	0	1	Rejected	\N	-	2026-05-21 09:27:29.347713+07	2026-05-25 15:07:10.624118+07
+4	PEA-2605-88F30E	2	22222	ห้องประชุมคนจน		ผู้ประสานงาน: Julalak Bupphaprommarat | หน่วยงาน: กองบริหาร	2026-05-25 10:00:00+07	2026-05-25 12:00:00+07	15	10	Rejected	\N	ควย	2026-05-25 15:11:24.748789+07	2026-05-25 15:12:01.335202+07
+3	PEA-2605-00D286	1	22222	นัดหมายงาน		ผู้ประสานงาน: Julalak Bupphaprommarat | หน่วยงาน: กองบริหาร	2026-05-25 10:00:00+07	2026-05-25 12:00:00+07	0	10	Approved	22222	\N	2026-05-25 15:07:53.615901+07	2026-05-25 15:12:03.598073+07
+5	PEA-2605-D5A278	1	22222	ประชุมควยๆๆๆ		ผู้ประสานงาน: Julalak Bupphaprommarat | หน่วยงาน: กองบริหาร	2026-05-25 01:00:00+07	2026-05-25 04:00:00+07	15	10	Rejected	\N	ไอ้ควยย	2026-05-25 15:14:15.542654+07	2026-05-25 15:14:50.06168+07
+\.
+
+
+--
+-- TOC entry 5042 (class 0 OID 16418)
+-- Dependencies: 221
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.rooms (room_id, room_name, capacity, mic_count, pc_count, screen_count, images, is_active, created_at, updated_at, building) FROM stdin;
+1	ห้องประชุม2	10	3	10	6	["/src/assets/Room1.png"]	t	2026-05-20 09:05:18.16016+07	2026-05-25 15:04:59.537028+07	อาคาร1 ชั้น 4
+2	ห้องประชุม1	10	2	2	1	["/src/assets/Room2.jpg"]	t	2026-05-25 15:04:42.808647+07	2026-05-25 15:04:42.808647+07	อาคาร3 ชั้น 2
+3	ห้องประชุม3	10	5	10	4	["data:image/jpeg;base64,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"]	t	2026-05-25 15:06:36.715143+07	2026-05-25 15:06:36.715143+07	อาคาร4 ชั้น 3
+\.
+
+
+--
+-- TOC entry 5040 (class 0 OID 16407)
+-- Dependencies: 219
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (emp_id, full_name, role, department, created_at, updated_at, email) FROM stdin;
+123	win	User	กองmyr	2026-05-20 09:12:40.150599+07	2026-05-20 09:12:40.150055+07	\N
+EMP001	สมชาย ใจดี	SuperAdmin	กองบริหาร	2026-05-20 08:52:38.743521+07	2026-05-21 09:23:00.546041+07	\N
+EMP123	สมชาย ใจดี	User	กองบัญชีและการเงิน	2026-05-25 14:56:35.27906+07	2026-05-25 14:56:35.27906+07	somchai@pea.co.th
+EMP999	ผู้ดูแลระบบสูงสุด (SuperAdmin)	User	กองระบบสารสนเทศ	2026-05-25 14:56:35.277132+07	2026-05-25 15:04:04.547776+07	superadmin@pea.co.th
+23	พีท	User	พีท	2026-05-25 15:16:02.783231+07	2026-05-25 15:16:02.789206+07	p@p.com
+55	พีท	Admin	กองบริหาร	2026-05-26 00:59:42.875368+07	2026-05-26 01:41:01.268675+07	h@gmail.com
+22222	Julalak Bupphaprommarat	SuperAdmin	กองบริหาร	2026-05-25 14:58:47.2727+07	2026-05-26 01:58:39.707897+07	phleang1125@gmail.com
+521354	แฮมจับ	User	กองบริหาร	2026-05-21 09:26:36.607436+07	2026-09-01 15:36:25.833249+07	HAMMMM@gmail.com
+\.
+
+
+--
+-- TOC entry 5055 (class 0 OID 0)
+-- Dependencies: 224
+-- Name: booking_logs_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.booking_logs_log_id_seq', 10, true);
+
+
+--
+-- TOC entry 5056 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: bookings_booking_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.bookings_booking_id_seq', 5, true);
+
+
+--
+-- TOC entry 5057 (class 0 OID 0)
+-- Dependencies: 220
+-- Name: rooms_room_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.rooms_room_id_seq', 3, true);
+
+
+--
+-- TOC entry 4891 (class 2606 OID 16460)
+-- Name: booking_logs booking_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.booking_logs
+    ADD CONSTRAINT booking_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- TOC entry 4888 (class 2606 OID 16446)
+-- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_pkey PRIMARY KEY (booking_id);
+
+
+--
+-- TOC entry 4886 (class 2606 OID 16429)
+-- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT rooms_pkey PRIMARY KEY (room_id);
+
+
+--
+-- TOC entry 4884 (class 2606 OID 16416)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (emp_id);
+
+
+--
+-- TOC entry 4892 (class 1259 OID 16461)
+-- Name: idx_booking_logs_booking_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_booking_logs_booking_id ON public.booking_logs USING btree (booking_id);
+
+
+--
+-- TOC entry 4889 (class 1259 OID 16447)
+-- Name: idx_bookings_booking_code; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX idx_bookings_booking_code ON public.bookings USING btree (booking_code);
+
+
+-- Completed on 2026-09-03 10:24:06
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict aBpakezz1RlyBdUB7hU4BoXepo25QDeZeDFB3uzEmNFEQNoTcBqkXmOFo44F9eQ
+
